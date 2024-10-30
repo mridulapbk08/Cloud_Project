@@ -1,0 +1,44 @@
+name: Build Packer Image
+on:
+ push:
+   branches: [ "main" ]
+ workflow_dispatch:
+jobs:
+ build_artifact:
+   name: Build Artifact
+   runs-on: ubuntu-latest
+   env:
+    PACKER_CONFIG: ${{ secrets.PACKER_CONFIG }}
+    GCP_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS_JSON }}   
+   steps:
+     - name: Checkout Repository
+       id: checkout_repository
+       uses: actions/checkout@v3
+
+ 
+     
+     - name: Create zip file
+       run: |
+         sudo apt install zip
+         zip -r webapp-main.zip ./* 
+     - name: Install Packer
+       uses: hashicorp/setup-packer@main
+       with:
+         version: 'latest'
+     - name: 'Authenticate to Google Cloud'
+       id: 'auth'
+       uses: 'google-github-actions/auth@v2'
+       with:
+         credentials_json: '${{ env.GCP_CREDENTIALS_JSON }}'
+     - name: Create packer config file
+       id: create_packer_config_file
+       run: |
+         echo "$PACKER_CONFIG" > maingcp.pkrvars.hcl
+     - name: Initialize Packer
+       id: initialize_packer
+       run: |
+         packer init .
+     - name: Format Packer
+       id: format_packer
+       run: |
+          packer build -var-file="maingcp.pkrvars.hcl" main.pkr.hcl

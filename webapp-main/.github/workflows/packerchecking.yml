@@ -1,0 +1,35 @@
+name: Build Packer Image
+on:
+  pull_request:
+   branches: [ "main" ]
+  workflow_dispatch:
+jobs:
+  packer-check:
+   name: Build Packer image
+   runs-on: ubuntu-latest
+   env:
+     PACKER_CONFIG: ${{ secrets.PACKER_CONFIG }}
+   steps:
+     - name: Checkout Repository
+       id: checkout_repository
+       uses: actions/checkout@v3
+     - name: Install Packer     
+       uses: hashicorp/setup-packer@main
+       with:
+         version: 'latest'
+     - name: Create zip file
+       run: |
+           sudo apt install zip
+           zip -r webapp-main.zip ./*          
+     - name: Create packer config file
+       id: create_packer_config_file
+       run: |
+         echo "$PACKER_CONFIG" > ./maingcp.pkrvars.hcl
+     - name: Initialize Packer
+       id: initialize_packer
+       run: |
+         packer init .
+     - name: Format Packer
+       id: format_packer
+       run: |
+         packer validate -var-file="maingcp.pkrvars.hcl" main.pkr.hcl

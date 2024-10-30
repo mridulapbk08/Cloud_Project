@@ -1,0 +1,19 @@
+[Unit]
+Description=Webapp execution
+ConditionPathExists=/home/csye6225/webapp-main/.env
+After=network.target
+ 
+[Service]
+Type=simple
+User=csye6225
+Group=csye6225
+WorkingDirectory=/home/csye6225/webapp-main
+ExecStart=/home/csye6225/webapp-main/venv/bin/python3 /home/csye6225/webapp-main/App2.py
+Restart=always
+RestartSec=3
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=csye6225
+ 
+[Install]
+WantedBy=multi-user.target
